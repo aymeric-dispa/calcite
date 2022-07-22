@@ -27,7 +27,9 @@ import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlLiteral;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlValuesOperator;
+import org.apache.calcite.sql.SqlOperator;
 import org.apache.calcite.sql.fun.SqlRowOperator;
+import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.sql.util.SqlBasicVisitor;
 
 import com.google.common.base.Preconditions;
@@ -2914,6 +2916,28 @@ public class Util {
 
     @Override public void remove() {
       delegate.remove();
+    }
+  }
+
+  /**
+   * Finds an AND operator in an expression.
+   */
+  public static class AndFinder extends SqlBasicVisitor<Void> {
+    @Override public Void visit(SqlCall call) {
+      final SqlOperator operator = call.getOperator();
+      if (operator == SqlStdOperatorTable.AND) {
+        throw Util.FoundOne.NULL;
+      }
+      return super.visit(call);
+    }
+
+    public boolean containsAnd(SqlNode node) {
+      try {
+        node.accept(this);
+        return false;
+      } catch (Util.FoundOne e) {
+        return true;
+      }
     }
   }
 }

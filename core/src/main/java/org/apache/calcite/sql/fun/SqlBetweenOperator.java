@@ -189,7 +189,7 @@ public class SqlBetweenOperator extends SqlInfixOperator {
     // which would be wrong.
     final SqlNode lower = call.operand(LOWER_OPERAND);
     final SqlNode upper = call.operand(UPPER_OPERAND);
-    int lowerPrec = new AndFinder().containsAnd(lower) ? 100 : 0;
+    int lowerPrec = new Util.AndFinder().containsAnd(lower) ? 100 : 0;
     lower.unparse(writer, lowerPrec, lowerPrec);
     writer.sep("AND");
     upper.unparse(writer, 0, getRightPrec());
@@ -251,27 +251,4 @@ public class SqlBetweenOperator extends SqlInfixOperator {
     return new ReduceResult(opOrdinal - 1, opOrdinal + 4, newExp);
   }
 
-  //~ Inner Classes ----------------------------------------------------------
-
-  /**
-   * Finds an AND operator in an expression.
-   */
-  private static class AndFinder extends SqlBasicVisitor<Void> {
-    @Override public Void visit(SqlCall call) {
-      final SqlOperator operator = call.getOperator();
-      if (operator == SqlStdOperatorTable.AND) {
-        throw Util.FoundOne.NULL;
-      }
-      return super.visit(call);
-    }
-
-    boolean containsAnd(SqlNode node) {
-      try {
-        node.accept(this);
-        return false;
-      } catch (Util.FoundOne e) {
-        return true;
-      }
-    }
-  }
 }
